@@ -1,4 +1,4 @@
-#include "../libproperty/property.hpp"
+#include "libproperty/property.hpp"
 
 #include <cassert>
 #include <cstddef>

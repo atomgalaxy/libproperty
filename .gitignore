@@ -1,1 +1,11 @@
 *.exe
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
+Testing
+cmake_install.cmake
+compile_commands.json
+conformance
+examples
+*.asm
+*.dSYM

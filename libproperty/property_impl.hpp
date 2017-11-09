@@ -58,7 +58,12 @@ namespace impl {
 
   /**
    * Alternative implementation of offsetof, but with a member pointer instead
-   * of a name. At this point, the host type is fully defined.
+   * of a name.
+   *
+   * At this point, the host type is fully defined, so we can do this magic.
+   *
+   * Contrary to popular belief, this is *not* undefined behaviour. It is the
+   * initial definition of the offsetof() macro.
    */
   template <typename Host, typename PointerToMemberType>
   auto constexpr offset_of(PointerToMemberType member_ptr)
@@ -69,6 +74,8 @@ namespace impl {
   template <typename Host, typename Property>
   auto constexpr offset_of_property(Property const& property)
   {
+    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
+
     auto const tag = tag_of(property);
     auto const member_ptr = Host::LIBPROPERTY__FUNC_NAME(tag);
     return offset_of<Host>(member_ptr);
@@ -90,6 +97,9 @@ namespace impl {
     using char_ptr_t = std::add_pointer_t<
         pm::like_t<std::remove_reference_t<Property>, char>>;
 
+    // find the offset and apply it. At runtime, all this code amounts to one
+    // adjustment of the 'this' pointer by a constant, so most probably one
+    // load and one add.
     auto const property_addr = ::std::addressof(property);
     auto const raw_property_ptr = reinterpret_cast<char_ptr_t>(property_addr);
     auto const offset = offset_of_property<Host>(property);
