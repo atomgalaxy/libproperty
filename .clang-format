@@ -33,8 +33,8 @@ BraceWrapping:
   BeforeElse:      false
   IndentBraces:    false
   SplitEmptyFunction: false
-  SplitEmptyRecord: true
-  SplitEmptyNamespace: true
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: WebKit
 BreakBeforeInheritanceComma: false

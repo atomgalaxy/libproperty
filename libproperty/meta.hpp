@@ -1,6 +1,9 @@
 #ifndef LIBPROPERTY_META_HPP_INCLUDED
 #define LIBPROPERTY_META_HPP_INCLUDED
 
+#include <type_traits>
+#include <utility>
+
 /*
 The MIT License (MIT)
 
@@ -48,6 +51,37 @@ namespace meta {
 
   template <typename Type, Type Value>
   value_<Value> value_c;
+
+  template <typename From, typename To>
+  class like {
+    template <bool Condition, template <typename> class Function, typename T>
+    using apply_if = std::conditional_t<Condition, Function<T>, T>;
+    using base = std::remove_cv_t<std::remove_reference_t<To>>;
+    using base_from = std::remove_reference_t<From>;
+
+    static constexpr bool rv = std::is_rvalue_reference_v<From>;
+    static constexpr bool lv = std::is_lvalue_reference_v<From>;
+    static constexpr bool c = std::is_const_v<base_from>;
+    static constexpr bool v = std::is_volatile_v<base_from>;
+
+  public:
+    // clang-format off
+    using type = apply_if<lv, std::add_lvalue_reference_t,
+                 apply_if<rv, std::add_rvalue_reference_t,
+                 apply_if<c, std::add_const_t,
+                 apply_if<v, std::add_volatile_t,
+                 base>>>>;
+    // clang-format on
+  };
+
+  template <typename From, typename To>
+  using like_t = typename like<From, To>::type;
+
+  template <typename Like, typename T>
+  constexpr decltype(auto) forward_like(T&& t) noexcept
+  {
+    return std::forward<like_t<Like, T>>(std::forward<T>(t));
+  }
 
 } // meta
 }

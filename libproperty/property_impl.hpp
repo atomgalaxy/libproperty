@@ -32,12 +32,28 @@ THE SOFTWARE.
 #define LIBPROPERTY__FUNC_NAME _libproperty__get_member_offset
 
 namespace libproperty {
+/* is_property trait.
+ *
+ * Any implemented properties must specialize the is_property trait.
+ */
+template <typename T>
+struct is_property : std::false_type {
+};
+template <typename T>
+inline constexpr is_property<T> is_property_v{};
+template <typename T>
+using is_property_t = typename is_property<T>::type;
+
 namespace impl {
 
-  template <typename T>
-  auto constexpr tag_of(T const&)
+  template <typename Property>
+  auto constexpr tag_of(Property&&)
   {
-    return ::libproperty::meta::type_c<typename T::tag>;
+    namespace pm = ::libproperty::meta;
+
+    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
+    using decayed = std::decay_t<Property>;
+    return pm::type_c<typename decayed::tag>;
   }
 
   /**
@@ -51,36 +67,35 @@ namespace impl {
   }
 
   template <typename Host, typename Property>
-  auto constexpr offset_of_property(Property const* property)
+  auto constexpr offset_of_property(Property const& property)
   {
-    auto const tag = tag_of(*property);
+    auto const tag = tag_of(property);
     auto const member_ptr = Host::LIBPROPERTY__FUNC_NAME(tag);
     return offset_of<Host>(member_ptr);
   }
 
   /**
-   * @param property should be the 'this' pointer of an rw_property or
+   * @param property should be the '*this' pointer of an rw_property or
    * compatible class.
    */
   template <typename Host, typename Property>
-  constexpr Host const& get_host(Property const* property)
+  constexpr auto get_host(Property&& property) noexcept -> decltype(auto)
   {
-    auto const raw_property_ptr = reinterpret_cast<char const*>(property);
-    auto const raw_host_ptr
-        = raw_property_ptr - offset_of_property<Host>(property);
-    auto const host_ptr = reinterpret_cast<Host const*>(raw_host_ptr);
-    return *host_ptr;
-  }
+    namespace pm = ::libproperty::meta;
 
-  /**
-   * Cast const back in, then cast it out again, so main functions remain const.
-   */
-  template <typename Host, typename Property>
-  Host& get_host(Property* property)
-  {
-    auto const const_property_ptr = const_cast<Property const*>(property);
-    auto const& const_host_ref = get_host<Host>(const_property_ptr);
-    return const_cast<Host&>(const_host_ref);
+    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
+    // transfer cv qualifiers from property to host
+    using host_ptr_t = std::add_pointer_t<
+        pm::like_t<std::remove_reference_t<Property>, Host>>;
+    using char_ptr_t = std::add_pointer_t<
+        pm::like_t<std::remove_reference_t<Property>, char>>;
+
+    auto const property_addr = ::std::addressof(property);
+    auto const raw_property_ptr = reinterpret_cast<char_ptr_t>(property_addr);
+    auto const offset = offset_of_property<Host>(property);
+    auto const raw_host_ptr = raw_property_ptr - offset;
+    auto const host_ptr = reinterpret_cast<host_ptr_t>(raw_host_ptr);
+    return pm::forward_like<Property>(*host_ptr);
   }
 
 } // impl

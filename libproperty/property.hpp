@@ -56,11 +56,11 @@ template <typename ValueType,
     typename Host,
     typename Getter,
     typename Setter,
-    typename TypeTag>
+    typename Tag>
 struct rw_property {
   using getter = Getter;
   using setter = Setter;
-  using tag = TypeTag;
+  using tag = Tag;
   using host = Host;
   using value_type = ValueType;
 
@@ -69,14 +69,14 @@ struct rw_property {
   constexpr operator decltype(auto)() const
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host<host>(this).*getter::value)();
+    return (pi::get_host<host>(*this).*getter::value)();
   }
 
   template <typename X>
   decltype(auto) operator=(X&& x)
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host<host>(this).*setter::value)(std::forward<X>(x));
+    return (pi::get_host<host>(*this).*setter::value)(std::forward<X>(x));
   }
 
   /* TODO: write comment that explains you don't have to use 'value' and that
@@ -94,6 +94,11 @@ private:           // for the use of host, not for nobody's!
   rw_property& operator=(rw_property&&) = default;
   rw_property(rw_property&&) = default;
 };
+
+template <typename VT, typename H, typename G, typename S, typename Tag>
+struct is_property<rw_property<VT, H, G, S, Tag>> : std::true_type {
+};
+
 
 } // property
 
