@@ -9,3 +9,4 @@ conformance
 examples
 *.asm
 *.dSYM
+Makefile
