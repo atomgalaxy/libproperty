@@ -35,10 +35,9 @@ namespace libproperty {
 namespace impl {
 
   template <typename T>
-  auto constexpr type_tag(T const&)
+  auto constexpr tag_of(T const&)
   {
-    using meta::type_c;
-    return type_c<typename T::type_tag>;
+    return ::libproperty::meta::type_c<typename T::tag>;
   }
 
   /**
@@ -54,7 +53,7 @@ namespace impl {
   template <typename Host, typename Property>
   auto constexpr offset_of_property(Property const* property)
   {
-    auto const tag = type_tag(*property);
+    auto const tag = tag_of(*property);
     auto const member_ptr = Host::LIBPROPERTY__FUNC_NAME(tag);
     return offset_of<Host>(member_ptr);
   }

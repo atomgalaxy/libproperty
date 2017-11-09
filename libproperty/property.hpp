@@ -39,7 +39,7 @@ THE SOFTWARE.
       ::libproperty::meta::type_<host::LIBPROPERTY__TAG_NAME(name)>>           \
       name;                                                                    \
   auto static constexpr LIBPROPERTY__FUNC_NAME(                                \
-      decltype(::libproperty::impl::type_tag(name)))                           \
+      decltype(::libproperty::impl::tag_of(name)))                             \
   {                                                                            \
     return &host::name;                                                        \
   }                                                                            \
@@ -60,7 +60,7 @@ template <typename ValueType,
 struct rw_property {
   using getter = Getter;
   using setter = Setter;
-  using type_tag = TypeTag;
+  using tag = TypeTag;
   using host = Host;
   using value_type = ValueType;
 
