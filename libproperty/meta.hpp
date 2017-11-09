@@ -3,7 +3,7 @@
 
 #include <utility> // for std::is_same
 
-#if 0
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Gašper Ažman
@@ -27,28 +27,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 The original idea for this: Louis Dionne, the boost::hana library.
-#endif
+*/
 
+namespace libproperty {
 namespace meta {
-template <typename T>
-struct type_ {
-  using type = T;
-};
 
-template <typename T>
-type_<T> type_c;
+  template <typename T>
+  struct type_ {
+    using type = T;
+  };
 
-template <typename Type, Type Value>
-struct value_ {
-  using type = Type;
-  static constexpr type value{Value};
-  constexpr operator type() const { return Value; };
-  static constexpr type get() { return Value; }
-};
+  template <typename T>
+  type_<T> type_c;
 
-template <typename Type, Type Value>
-value_<Type, Value> value_c;
+  template <auto Value>
+  struct value_ {
+    using type = decltype(Value);
+    static constexpr type value{ Value };
+    constexpr operator type() const { return Value; };
+    static constexpr type get() { return Value; }
+  };
 
-}  // meta
+  template <typename Type, Type Value>
+  value_<Value> value_c;
+
+} // meta
+}
 
 #endif
