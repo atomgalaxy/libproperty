@@ -1,10 +1,10 @@
-#ifndef LIBPROPERTY_PROPERTY_HPP_c
-#define LIBPROPERTY_PROPERTY_HPP_c
+#ifndef LIBPROPERTY_PROPERTY_HPP_INCLUDED
+#define LIBPROPERTY_PROPERTY_HPP_INCLUDED
 
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015 Gašper Ažman
+Copyright (c) 2015, 2017 Gašper Ažman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -68,15 +68,15 @@ struct rw_property {
 
   constexpr operator decltype(auto)() const
   {
-    using namespace ::libproperty::impl;
-    return (get_host<host>(this).*getter::value)();
+    namespace pi = ::libproperty::impl;
+    return (pi::get_host<host>(this).*getter::value)();
   }
 
   template <typename X>
   decltype(auto) operator=(X&& x)
   {
-    using namespace ::libproperty::impl;
-    return (get_host<host>(this).*setter::value)(std::forward<X>(x));
+    namespace pi = ::libproperty::impl;
+    return (pi::get_host<host>(this).*setter::value)(std::forward<X>(x));
   }
 
   /* TODO: write comment that explains you don't have to use 'value' and that

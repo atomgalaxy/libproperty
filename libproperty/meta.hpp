@@ -1,12 +1,10 @@
-#ifndef PROPLIB_PSEUDOHANA_HPP_c
-#define PROPLIB_PSEUDOHANA_HPP_c
-
-#include <utility> // for std::is_same
+#ifndef LIBPROPERTY_META_HPP_INCLUDED
+#define LIBPROPERTY_META_HPP_INCLUDED
 
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015 Gašper Ažman
+Copyright (c) 2015, 2017 Gašper Ažman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

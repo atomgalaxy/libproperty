@@ -1,10 +1,10 @@
-#ifndef LIBPROPERTY_PROPERTY_IMPL_HPP_
-#define LIBPROPERTY_PROPERTY_IMPL_HPP_
+#ifndef LIBPROPERTY_PROPERTY_IMPL_HPP_INCLUDED
+#define LIBPROPERTY_PROPERTY_IMPL_HPP_INCLUDED
 
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015 Gašper Ažman
+Copyright (c) 2015, 2017 Gašper Ažman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <cstddef> // for std::size_t
 
 #define LIBPROPERTY__TAG_NAME(name) _libproperty__##name##_prop_tag
-#define LIBPROPERTY__FUNC_NAME _libproperty__offset_get
+#define LIBPROPERTY__FUNC_NAME _libproperty__get_member_offset
 
 namespace libproperty {
 namespace impl {
