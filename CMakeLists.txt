@@ -5,43 +5,8 @@ include(CMakeParseArguments)
 message(STATUS ${CMAKE_MODULE_PATH})
 include(assert_build_fails)
 
-#########################
-# function definitions  #
-#########################
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# add_markdown
-# ------------
-#
-# Add a markdown target that compiles into an html file.
-#
-# Parameters:
-# OPT_TARGET     -- the target being defined (relative to binary dir)
-# OPT_SOURCE     -- the main source file (relative to source dir)
-# OPT_STYLESHEET -- the html stylesheet (css) that will be used to render the
-#                   html document. (relative to source dir)
-#
-# Other dependencies:
-# MD -- the markdown compiler script
-#       (has to accept the three arguments in SOURCE, STYLESHEET, TARGET order)
-#
-set( MD "${CMAKE_SOURCE_DIR}/build_markdown.sh" )
-function(add_markdown OPT_TARGET OPT_SOURCE OPT_STYLESHEET)
-  set(TARGET "${CMAKE_CURRENT_BINARY_DIR}/${OPT_TARGET}")
-  set(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${OPT_SOURCE}")
-  set(STYLESHEET "${CMAKE_CURRENT_SOURCE_DIR}/${OPT_STYLESHEET}")
-
-  add_custom_command(
-    OUTPUT "${TARGET}"
-    COMMAND "${MD}" "${SOURCE}" "${STYLESHEET}" "${TARGET}"
-    MAIN_DEPENDENCY "${SOURCE}"
-    DEPENDS "${STYLESHEET}" "${MD}"
-    VERBATIM)
-endfunction(add_markdown)
-##############################
-#  end function definitions  #
-##############################
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 project(libproperty)
 
 enable_testing()
