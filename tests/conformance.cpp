@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 
+
 /** consumes 8 bytes, because of alignment */
 template <int I>
 struct property_test {
@@ -17,9 +18,9 @@ public:
   int const& get_value() const { return value_; }
   int const& set_value(int const& x) { return value_ = x; }
 
-  LIBPROPERTY_PROPERTY(prop1, get_value, set_value, self_);
-  LIBPROPERTY_PROPERTY(prop2, get_value, set_value, self_);
-  LIBPROPERTY_PROPERTY(prop3, get_value, set_value, self_);
+  LIBPROPERTY_EMPTY_PROPERTY(prop1, get_value, set_value, self_);
+  LIBPROPERTY_EMPTY_PROPERTY(prop2, get_value, set_value, self_);
+  LIBPROPERTY_EMPTY_PROPERTY(prop3, get_value, set_value, self_);
 };
 /** consumes 8 bytes, because of alignment */
 static_assert(sizeof(property_test<0>) == sizeof(int) + sizeof(int),
@@ -28,13 +29,13 @@ static_assert(sizeof(property_test<0>) == sizeof(int) + sizeof(int),
 
 template <typename T>
 struct property_with_storage_test {
-  using self_ = property_with_storage_test;
+  using self = property_with_storage_test;
 
 public:
   T const& get_value() const { return prop1.value; }
   T const& set_value(T const& x) { return prop1.value = x; }
 
-  LIBPROPERTY_PROPERTY_WITH_STORAGE(T, prop1, get_value, set_value, self_);
+  LIBPROPERTY_PROPERTY2(T, prop1, &self::get_value, &self::set_value, self);
 };
 static_assert(sizeof(property_with_storage_test<char>) == sizeof(char),
     "Supposed to be equal in size as what it's storing!");
@@ -51,9 +52,9 @@ struct my_class {
     return property.value = atoi(x.c_str());
   }
   int const& my_int_setter(int x) { return property.value = x; }
-  LIBPROPERTY_PROPERTY_WITH_STORAGE(
+  LIBPROPERTY_PROPERTY(
       int, property, my_getter, my_setter, my_class);
-  LIBPROPERTY_PROPERTY(as_int, my_getter, my_int_setter, my_class);
+  LIBPROPERTY_EMPTY_PROPERTY(as_int, my_getter, my_int_setter, my_class);
 };
 
 struct offset_of_test {

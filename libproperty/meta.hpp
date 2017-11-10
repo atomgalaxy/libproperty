@@ -1,5 +1,5 @@
-#ifndef LIBPROPERTY_META_HPP_INCLUDED
-#define LIBPROPERTY_META_HPP_INCLUDED
+#ifndef INCLUDED_LIBPROPERTY_META_HPP
+#define INCLUDED_LIBPROPERTY_META_HPP
 
 #include <type_traits>
 #include <utility>

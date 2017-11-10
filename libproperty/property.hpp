@@ -1,5 +1,5 @@
-#ifndef LIBPROPERTY_PROPERTY_HPP_INCLUDED
-#define LIBPROPERTY_PROPERTY_HPP_INCLUDED
+#ifndef INCLUDED_LIBPROPERTY_PROPERTY_HPP
+#define INCLUDED_LIBPROPERTY_PROPERTY_HPP
 
 /*
 The MIT License (MIT)
@@ -30,8 +30,7 @@ THE SOFTWARE.
 #include <type_traits>
 #include <utility> // for std::forward
 
-// only call in class scope!
-#define LIBPROPERTY_PROPERTY_WITH_STORAGE(type, name, getter, setter, host)    \
+#define LIBPROPERTY_PROPERTY2(type, name, getter, setter, host)                \
   struct LIBPROPERTY__TAG_NAME(name);                                          \
   ::libproperty::rw_property<type,                                             \
       host,                                                                    \
@@ -43,14 +42,21 @@ THE SOFTWARE.
     namespace pi = ::libproperty::impl;                                        \
     namespace pm = ::libproperty::meta;                                        \
     return pi::metadata<pm::value_<&host::name>,                               \
-        pm::value_<&host::getter>,                                             \
-        pm::value_<&host::setter>>{};                                          \
+        pm::value_<getter>,                                                    \
+        pm::value_<setter>>{};                                                 \
   }                                                                            \
   static_assert(true)
 
+// only call in class scope!
+#define LIBPROPERTY_PROPERTY(type, name, getter, setter, host)                 \
+  LIBPROPERTY_PROPERTY2(type, name, &host::getter, &host::setter, host)
+
 // end define
-#define LIBPROPERTY_PROPERTY(name, host, getter, setter)                       \
-  LIBPROPERTY_PROPERTY_WITH_STORAGE(char, name, host, getter, setter)
+#define LIBPROPERTY_EMPTY_PROPERTY(name, getter, setter, host)                 \
+  LIBPROPERTY_PROPERTY(char, name, getter, setter, host)
+
+#define LIBPROPERTY_EMPTY_PROPERTY2(name, getter, setter, host)                 \
+  LIBPROPERTY_PROPERTY2(char, name, getter, setter, host)
 
 namespace libproperty {
 
