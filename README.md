@@ -3,18 +3,16 @@ Libproperty
 
 An experimental design for a property library for C++.
 
-This library borrows ideas from Louis Dionne's boost::hana library. Since it's
-not in boost yet, I implemented a local version from memory.
-
 Usage:
 ------
 
-* See [test](tests/usage_test.cpp) for examples.
+* See [test](tests/examples.cpp) for examples.
 
 ### Quick example: ###
 
 ```c++
 #include "libproperty/property.hpp"
+
 #include <iostream>
 #include <string>
 struct my_class {
@@ -24,7 +22,7 @@ struct my_class {
     return property.value = atoi(x.c_str());
   }
   LIBPROPERTY_PROPERTY_WITH_STORAGE(
-      int, property, my_class, my_getter, my_setter);
+      int, property, my_getter, my_setter, my_class);
 };
 
 int main() {
@@ -53,3 +51,20 @@ does not work - the copy constructor is private, as are assignment operators for
 the property type. It is therefore hard to copy it out of the class, where
 accessing it would cause extreme havoc (don't do that!).
 
+
+Authors
+-------
+
+The first version was started by
+[Viktor Korsun](https://github.com/bitekas/properties).
+
+He have a full-length talk about it at CppCon 2015, which is when
+[Gašper Ažman](https://github.com/atomgalaxy/properties) re-wrote it overnight
+and gave a lightning talk improving on Viktor's concept the next day.
+
+
+Acknowledgements
+----------------
+
+The current library also owes some conceptual ideas about metaprogrammimng to
+Louis Dionne, our dear author of boost.hana.

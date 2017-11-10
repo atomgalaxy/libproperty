@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "property_impl.hpp"
 
+#include <type_traits>
 #include <utility> // for std::forward
 
 // only call in class scope!
@@ -34,16 +35,17 @@ THE SOFTWARE.
   struct LIBPROPERTY__TAG_NAME(name);                                          \
   ::libproperty::rw_property<type,                                             \
       host,                                                                    \
-      ::libproperty::meta::value_<&host::getter>,                              \
-      ::libproperty::meta::value_<&host::setter>,                              \
       ::libproperty::meta::type_<host::LIBPROPERTY__TAG_NAME(name)>>           \
       name;                                                                    \
-  auto static constexpr LIBPROPERTY__FUNC_NAME(                                \
+  auto static constexpr _libproperty__get_metadata(                            \
       decltype(::libproperty::impl::tag_of(name)))                             \
   {                                                                            \
-    return &host::name;                                                        \
+    namespace pi = ::libproperty::impl;                                        \
+    namespace pm = ::libproperty::meta;                                        \
+    return pi::metadata<pm::value_<&host::name>,                               \
+        pm::value_<&host::getter>,                                             \
+        pm::value_<&host::setter>>{};                                          \
   }                                                                            \
-  /* so that we can have the missing semicolon... */                           \
   static_assert(true)
 
 // end define
@@ -52,53 +54,61 @@ THE SOFTWARE.
 
 namespace libproperty {
 
-template <typename ValueType,
-    typename Host,
-    typename Getter,
-    typename Setter,
-    typename Tag>
+template <typename T, typename Host, typename Tag>
 struct rw_property {
-  using getter = Getter;
-  using setter = Setter;
   using tag = Tag;
   using host = Host;
-  using value_type = ValueType;
+  using value_type = T;
 
   friend host;
 
   constexpr operator decltype(auto)() const
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host<host>(*this).*getter::value)();
+    auto constexpr getter = metadata().getter.value;
+    return (pi::get_host<host>(*this).*getter)();
   }
 
   template <typename X>
-  decltype(auto) operator=(X&& x)
+  decltype(auto) operator=(X&& x) // I don't want to say it 3 times...
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host<host>(*this).*setter::value)(std::forward<X>(x));
+    auto constexpr setter = metadata().setter.value;
+    return (pi::get_host<host>(*this).*setter)(std::forward<X>(x));
   }
 
-  /* TODO: write comment that explains you don't have to use 'value' and that
-   * it's not required to be related to the getter and setter at all. */
-
-private:           // for the use of host, not for nobody's!
-  ValueType value; // possibly unused.
+private:   // for the use of host, not for anyone else!
+  T value; // possibly unused.
 
   /// disallow copying for non-friend users of the class - this doesn't have a
   /// value, but if copied, it can get really, really bad (stack corruption).
-  rw_property() = default;
-  rw_property& operator=(rw_property const&) = default;
-  rw_property(rw_property const&) = default;
+  constexpr rw_property() = default;
+  constexpr rw_property(rw_property const&) = default;
+  constexpr rw_property(rw_property&&) = default;
   ~rw_property() = default;
-  rw_property& operator=(rw_property&&) = default;
-  rw_property(rw_property&&) = default;
+  constexpr rw_property& operator=(rw_property const&) = default;
+  constexpr rw_property& operator=(rw_property&&) = default;
+
+  // value-construction
+  constexpr rw_property(T&& x) noexcept(std::is_nothrow_move_constructible_v<T>)
+      : value(std::move(x))
+  {
+  }
+  constexpr rw_property(T const& x) noexcept(
+      std::is_nothrow_copy_constructible_v<T>)
+      : value(x)
+  {
+  }
+
+  static constexpr auto metadata()
+  {
+    return host::_libproperty__get_metadata(tag{});
+  }
 };
 
-template <typename VT, typename H, typename G, typename S, typename Tag>
-struct is_property<rw_property<VT, H, G, S, Tag>> : std::true_type {
+template <typename T, typename H, typename Tag>
+struct is_property<rw_property<T, H, Tag>> : std::true_type {
 };
-
 
 } // property
 

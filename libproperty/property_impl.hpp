@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include <cstddef> // for std::size_t
 
 #define LIBPROPERTY__TAG_NAME(name) _libproperty__##name##_prop_tag
-#define LIBPROPERTY__FUNC_NAME _libproperty__get_member_offset
 
 namespace libproperty {
 /* is_property trait.
@@ -45,6 +44,16 @@ template <typename T>
 using is_property_t = typename is_property<T>::type;
 
 namespace impl {
+  template <typename MemberPtr, typename Getter, typename Setter>
+  struct metadata {
+    using member_ptr_t = MemberPtr;
+    using getter_t = Getter;
+    using setter_t = Setter;
+
+    static constexpr member_ptr_t member_ptr{};
+    static constexpr getter_t getter{};
+    static constexpr setter_t setter{};
+  };
 
   template <typename Property>
   auto constexpr tag_of(Property&&)
@@ -53,7 +62,7 @@ namespace impl {
 
     static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
     using decayed = std::decay_t<Property>;
-    return pm::type_c<typename decayed::tag>;
+    return typename decayed::tag{};
   }
 
   /**
@@ -77,7 +86,8 @@ namespace impl {
     static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
 
     auto const tag = tag_of(property);
-    auto const member_ptr = Host::LIBPROPERTY__FUNC_NAME(tag);
+    auto const member_ptr =
+      Host::_libproperty__get_metadata(tag).member_ptr.value;
     return offset_of<Host>(member_ptr);
   }
 

@@ -12,11 +12,19 @@ project(libproperty)
 enable_testing()
 
 # enable c++14
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories("${CMAKE_SOURCE_DIR}")
+
 add_executable(examples ./tests/examples.cpp)
 add_test(NAME examples COMMAND examples)
+
+add_executable(readme_example ./tests/readme_example.cpp)
+add_test(NAME readme_example COMMAND readme_example)
+
+add_executable(short_example ./tests/short_example.cpp)
+add_test(NAME short_example COMMAND short_example)
 
 add_executable(conformance ./tests/conformance.cpp)
 add_test(NAME conformance COMMAND conformance)

@@ -10,3 +10,4 @@ examples
 *.asm
 *.dSYM
 Makefile
+*.swp
