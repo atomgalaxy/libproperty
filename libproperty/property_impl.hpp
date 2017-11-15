@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "meta.hpp"
 #include <cstddef> // for std::size_t
 
+#define LIBPROPERTY__PARENTHESIZED_TYPE(...) __VA_ARGS__
 #define LIBPROPERTY__TAG_NAME(name) _libproperty__##name##_prop_tag
 
 namespace libproperty {

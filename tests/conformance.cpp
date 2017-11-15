@@ -35,7 +35,7 @@ public:
   T const& get_value() const { return prop1.value; }
   T const& set_value(T const& x) { return prop1.value = x; }
 
-  LIBPROPERTY_PROPERTY2(T, prop1, &self::get_value, &self::set_value, self);
+  LIBPROPERTY_PROPERTY2((T), prop1, &self::get_value, &self::set_value, self);
 };
 static_assert(sizeof(property_with_storage_test<char>) == sizeof(char),
     "Supposed to be equal in size as what it's storing!");
@@ -53,7 +53,7 @@ struct my_class {
   }
   int const& my_int_setter(int x) { return property.value = x; }
   LIBPROPERTY_PROPERTY(
-      int, property, my_getter, my_setter, my_class);
+      (int), property, my_getter, my_setter, my_class);
   LIBPROPERTY_EMPTY_PROPERTY(as_int, my_getter, my_int_setter, my_class);
 };
 

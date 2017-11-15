@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 #define LIBPROPERTY_PROPERTY2(type, name, getter, setter, host)                \
   struct LIBPROPERTY__TAG_NAME(name);                                          \
-  ::libproperty::rw_property<type,                                             \
+  ::libproperty::rw_property<LIBPROPERTY__PARENTHESIZED_TYPE type,             \
       host,                                                                    \
       ::libproperty::meta::type_<host::LIBPROPERTY__TAG_NAME(name)>>           \
       name;                                                                    \
@@ -53,10 +53,10 @@ THE SOFTWARE.
 
 // end define
 #define LIBPROPERTY_EMPTY_PROPERTY(name, getter, setter, host)                 \
-  LIBPROPERTY_PROPERTY(char, name, getter, setter, host)
+  LIBPROPERTY_PROPERTY((char), name, getter, setter, host)
 
-#define LIBPROPERTY_EMPTY_PROPERTY2(name, getter, setter, host)                 \
-  LIBPROPERTY_PROPERTY2(char, name, getter, setter, host)
+#define LIBPROPERTY_EMPTY_PROPERTY2(name, getter, setter, host)                \
+  LIBPROPERTY_PROPERTY2((char), name, getter, setter, host)
 
 namespace libproperty {
 

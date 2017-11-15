@@ -28,7 +28,7 @@ public:
   bool writable;
 
   // define the property called 'data'
-  LIBPROPERTY_PROPERTY(T, data, get_value, set_value, self);
+  LIBPROPERTY_PROPERTY((T), data, get_value, set_value, self);
 
   /* - functions and methods - */
   // you need a constructor.

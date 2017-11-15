@@ -9,7 +9,7 @@ struct my_class {
   int const& my_setter(std::string const& x) {
     return property.value = atoi(x.c_str());
   }
-  LIBPROPERTY_PROPERTY(int, property, my_getter, my_setter, my_class);
+  LIBPROPERTY_PROPERTY((int), property, my_getter, my_setter, my_class);
 };
 
 int main() {

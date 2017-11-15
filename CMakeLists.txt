@@ -29,12 +29,15 @@ add_test(NAME short_example COMMAND short_example)
 add_executable(conformance ./tests/conformance.cpp)
 add_test(NAME conformance COMMAND conformance)
 
+add_executable(move ./tests/move.cpp)
+add_test(NAME move COMMAND move)
+
 # movable test & negatives
 #assert_build_fails(TEST_NAME negative_test_copyable
 #                   TARGET negative_test_copyable test/test_type_erasure_movable.cpp
 #                   DEFINITIONS NOCOMPILE_COPYABLE_TEST
 #                   )
-#assert_build_fails(TEST_NAME negative_test_movable
-#                   TARGET negative_test_movable test/test_type_erasure_movable.cpp
-#                   DEFINITIONS NOCOMPILE_MOVABLE_TEST
-#                   )
+assert_build_fails(TEST_NAME negative_test_movable
+                   TARGET negative_test_movable tests/move.cpp
+                   DEFINITIONS ENSURE_DOES_NOT_COMPILE_1
+                   )
