@@ -45,16 +45,33 @@ template <typename T>
 using is_property_t = typename is_property<T>::type;
 
 namespace impl {
-  template <typename MemberPtr, typename Getter, typename Setter>
-  struct metadata {
-    using member_ptr_t = MemberPtr;
-    using getter_t = Getter;
-    using setter_t = Setter;
+  template <typename MemberPtr, typename Host>
+  struct bare_metadata {
+    using host_type = Host;
 
-    static constexpr member_ptr_t member_ptr{};
-    static constexpr getter_t getter{};
-    static constexpr setter_t setter{};
+    using member_ptr_t = MemberPtr;
+    static constexpr auto member_ptr = member_ptr_t::value;
   };
+
+  template <typename MemberPtr, typename Getter, typename Setter, typename Host>
+  struct metadata : bare_metadata<MemberPtr, Host> {
+
+    using getter_t = Getter;
+    static constexpr auto getter = Getter::value;
+
+    using setter_type = Setter;
+    static constexpr auto setter = Setter::value;
+  };
+
+  template <typename MemberPtr, typename Host>
+  using bare_metadata_t
+      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>>;
+
+  template <typename MemberPtr, typename Getter, typename Setter, typename Host>
+  using metadata_t = metadata<std::decay_t<MemberPtr>,
+      std::decay_t<Getter>,
+      std::decay_t<Setter>,
+      std::decay_t<Host>>;
 
   template <typename Property>
   auto constexpr tag_of(Property&&)
@@ -88,7 +105,7 @@ namespace impl {
 
     auto const tag = tag_of(property);
     auto const member_ptr =
-      Host::_libproperty__get_metadata(tag).member_ptr.value;
+      Host::_libproperty__get_metadata(tag).member_ptr;
     return offset_of<Host>(member_ptr);
   }
 

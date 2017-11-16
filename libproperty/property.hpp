@@ -43,7 +43,8 @@ THE SOFTWARE.
     namespace pm = ::libproperty::meta;                                        \
     return pi::metadata<pm::value_<&host::name>,                               \
         pm::value_<getter>,                                                    \
-        pm::value_<setter>>{};                                                 \
+        pm::value_<setter>,                                                    \
+        host>{};                                                               \
   }                                                                            \
   static_assert(true)
 
@@ -71,7 +72,7 @@ struct rw_property {
   constexpr operator decltype(auto)() const
   {
     namespace pi = ::libproperty::impl;
-    auto constexpr getter = metadata().getter.value;
+    auto constexpr getter = metadata().getter;
     return (pi::get_host<host>(*this).*getter)();
   }
 
@@ -79,7 +80,7 @@ struct rw_property {
   decltype(auto) operator=(X&& x) // I don't want to say it 3 times...
   {
     namespace pi = ::libproperty::impl;
-    auto constexpr setter = metadata().setter.value;
+    auto constexpr setter = metadata().setter;
     return (pi::get_host<host>(*this).*setter)(std::forward<X>(x));
   }
 

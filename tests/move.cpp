@@ -40,7 +40,7 @@ int main()
   {
 #ifdef ENSURE_DOES_NOT_COMPILE_1
     X x;
-    X y = x; // no copy
+    X y = x; // no copy - only move
 #endif
   }
 }

@@ -32,6 +32,9 @@ add_test(NAME conformance COMMAND conformance)
 add_executable(move ./tests/move.cpp)
 add_test(NAME move COMMAND move)
 
+add_executable(alt-design ./tests/alt-design.cpp)
+add_test(NAME alt-design COMMAND alt-design)
+
 # movable test & negatives
 #assert_build_fails(TEST_NAME negative_test_copyable
 #                   TARGET negative_test_copyable test/test_type_erasure_movable.cpp

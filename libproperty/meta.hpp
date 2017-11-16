@@ -47,6 +47,13 @@ namespace meta {
     static constexpr type value{ Value };
     constexpr operator type() const { return Value; };
     static constexpr type get() { return Value; }
+    static constexpr auto getp() {
+      if constexpr (std::is_pointer_v<type>) {
+        return *Value;
+      } else {
+        return Value;
+      }
+    }
   };
 
   template <typename Type, Type Value>
