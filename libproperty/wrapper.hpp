@@ -23,6 +23,9 @@ class wrapper {
   Property delegate;
 
   friend Host;
+  friend ::libproperty::impl::backdoor;
+
+  using tag = ::libproperty::meta::type_<Tag>; // tags must be cheap and regular
 
   using host = Host;
   using self = wrapper;
@@ -52,21 +55,9 @@ class wrapper {
   {
     return host::_libproperty__get_metadata(tag{});
   }
-  decltype(auto) get() const &
-  {
-    return delegate.get(::libproperty::impl::get_host<host>(*this));
-  }
-  decltype(auto) get() &
-  {
-    return delegate.get(::libproperty::impl::get_host<host>(*this));
-  }
-  decltype(auto) get() &&
-  {
-    return delegate.get(::libproperty::impl::get_host<host>(std::move(*this)));
-  }
 
 public:
-  using tag = ::libproperty::meta::type_<Tag>;
+  /* setter implementation */
   template <typename X>
   decltype(auto) operator=(X&& value) &
   {
@@ -84,6 +75,19 @@ public:
   {
     return delegate.set(::libproperty::impl::get_host<host>(std::move(*this)),
         std::forward<X>(value));
+  }
+
+  decltype(auto) get() const &
+  {
+    return delegate.get(::libproperty::impl::get_host<host>(*this));
+  }
+  decltype(auto) get() &
+  {
+    return delegate.get(::libproperty::impl::get_host<host>(*this));
+  }
+  decltype(auto) get() &&
+  {
+    return delegate.get(::libproperty::impl::get_host<host>(std::move(*this)));
   }
 
   operator decltype(auto)() const &

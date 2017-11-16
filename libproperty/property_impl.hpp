@@ -73,14 +73,17 @@ namespace impl {
       std::decay_t<Setter>,
       std::decay_t<Host>>;
 
+
+  struct backdoor {
+    template <typename Property>
+    auto static constexpr tag_of = typename std::decay_t<Property>::tag{};
+  };
+
   template <typename Property>
   auto constexpr tag_of(Property&&)
   {
-    namespace pm = ::libproperty::meta;
-
     static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
-    using decayed = std::decay_t<Property>;
-    return typename decayed::tag{};
+    return backdoor::tag_of<Property>;
   }
 
   /**
