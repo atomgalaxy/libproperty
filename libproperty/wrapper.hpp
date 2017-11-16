@@ -20,7 +20,7 @@ namespace libproperty {
 template <typename Property, typename Host, typename Tag>
 class wrapper {
   // the very first thing to make sure it shares the address with wrapper.
-  Property delegate;
+  Property value;
 
   friend Host;
   friend ::libproperty::impl::backdoor;
@@ -38,15 +38,15 @@ class wrapper {
   constexpr wrapper& operator=(wrapper const&) = default;
   constexpr wrapper& operator=(wrapper&&) = default;
 
-  // value-construction
+  // val-construction
   constexpr wrapper(value_type&& x) noexcept(
       std::is_nothrow_move_constructible_v<value_type>)
-      : delegate(std::move(x))
+      : value(std::move(x))
   {
   }
   constexpr wrapper(value_type const& x) noexcept(
       std::is_nothrow_copy_constructible_v<value_type>)
-      : delegate(x)
+      : value(x)
   {
   }
 
@@ -59,37 +59,39 @@ class wrapper {
 public:
   /* setter implementation */
   template <typename X>
-  decltype(auto) operator=(X&& value) &
+  decltype(auto) operator=(X&& val) &
   {
-    return delegate.set(
-        ::libproperty::impl::get_host<host>(*this), std::forward<X>(value));
+    return value.set(
+        ::libproperty::impl::get_host<host>(*this), std::forward<X>(val));
   }
   template <typename X>
-  decltype(auto) operator=(X&& value) const &
+  decltype(auto) operator=(X&& val) const &
   {
-    return delegate.set(
-        ::libproperty::impl::get_host<host>(*this), std::forward<X>(value));
+    return value.set(
+        ::libproperty::impl::get_host<host>(*this), std::forward<X>(val));
   }
   template <typename X>
-  decltype(auto) operator=(X&& value) &&
+  decltype(auto) operator=(X&& val) &&
   {
-    return delegate.set(::libproperty::impl::get_host<host>(std::move(*this)),
-        std::forward<X>(value));
+    return value.set(::libproperty::impl::get_host<host>(std::move(*this)),
+        std::forward<X>(val));
   }
 
+  /* get */
   decltype(auto) get() const &
   {
-    return delegate.get(::libproperty::impl::get_host<host>(*this));
+    return value.get(::libproperty::impl::get_host<host>(*this));
   }
   decltype(auto) get() &
   {
-    return delegate.get(::libproperty::impl::get_host<host>(*this));
+    return value.get(::libproperty::impl::get_host<host>(*this));
   }
   decltype(auto) get() &&
   {
-    return delegate.get(::libproperty::impl::get_host<host>(std::move(*this)));
+    return value.get(::libproperty::impl::get_host<host>(std::move(*this)));
   }
 
+  /* implicit conversions to get */
   operator decltype(auto)() const &
   {
     return get();
@@ -103,103 +105,134 @@ public:
     return get();
   }
 
+  /* the return-sensitive conversions to get */
+  template <typename U>
+  operator U() const
+  {
+    return value.template convert_to<U>(
+        ::libproperty::impl::get_host<host>(*this));
+  }
+
   // operators
   template <typename Y>
-  friend bool operator==(wrapper const& x, Y const& y) {
+  friend bool operator==(wrapper const& x, Y const& y)
+  {
     return x.get() == y;
   }
   template <typename X>
-  friend bool operator==(X const& x, wrapper const& y) {
+  friend bool operator==(X const& x, wrapper const& y)
+  {
     return x == y.get();
   }
-  friend bool operator==(wrapper const& x, wrapper const& y) {
+  friend bool operator==(wrapper const& x, wrapper const& y)
+  {
     return x.get() == y.get();
   }
 
   template <typename Y>
-  friend bool operator!=(wrapper const& x, Y const& y) {
+  friend bool operator!=(wrapper const& x, Y const& y)
+  {
     return x.get() != y;
   }
   template <typename X>
-  friend bool operator!=(X const& x, wrapper const& y) {
+  friend bool operator!=(X const& x, wrapper const& y)
+  {
     return x != y.get();
   }
-  friend bool operator!=(wrapper const& x, wrapper const& y) {
+  friend bool operator!=(wrapper const& x, wrapper const& y)
+  {
     return x.get() != y.get();
   }
 
   template <typename Y>
-  friend bool operator<(wrapper const& x, Y const& y) {
+  friend bool operator<(wrapper const& x, Y const& y)
+  {
     return x.get() < y;
   }
   template <typename X>
-  friend bool operator<(X const& x, wrapper const& y) {
+  friend bool operator<(X const& x, wrapper const& y)
+  {
     return x < y.get();
   }
-  friend bool operator<(wrapper const& x, wrapper const& y) {
+  friend bool operator<(wrapper const& x, wrapper const& y)
+  {
     return x.get() < y.get();
   }
 
   template <typename Y>
-  friend bool operator>(wrapper const& x, Y const& y) {
+  friend bool operator>(wrapper const& x, Y const& y)
+  {
     return x.get() > y;
   }
   template <typename X>
-  friend bool operator>(X const& x, wrapper const& y) {
+  friend bool operator>(X const& x, wrapper const& y)
+  {
     return x > y.get();
   }
-  friend bool operator>(wrapper const& x, wrapper const& y) {
+  friend bool operator>(wrapper const& x, wrapper const& y)
+  {
     return x.get() > y.get();
   }
 
   template <typename Y>
-  friend bool operator<=(wrapper const& x, Y const& y) {
+  friend bool operator<=(wrapper const& x, Y const& y)
+  {
     return x.get() <= y;
   }
   template <typename X>
-  friend bool operator<=(X const& x, wrapper const& y) {
+  friend bool operator<=(X const& x, wrapper const& y)
+  {
     return x <= y.get();
   }
-  friend bool operator<=(wrapper const& x, wrapper const& y) {
+  friend bool operator<=(wrapper const& x, wrapper const& y)
+  {
     return x.get() <= y.get();
   }
 
   template <typename Y>
-  friend bool operator>=(wrapper const& x, Y const& y) {
+  friend bool operator>=(wrapper const& x, Y const& y)
+  {
     return x.get() >= y;
   }
   template <typename X>
-  friend bool operator>=(X const& x, wrapper const& y) {
+  friend bool operator>=(X const& x, wrapper const& y)
+  {
     return x >= y.get();
   }
-  friend bool operator>=(wrapper const& x, wrapper const& y) {
+  friend bool operator>=(wrapper const& x, wrapper const& y)
+  {
     return x.get() >= y.get();
   }
 
   template <typename Y>
-  friend bool operator<<(wrapper const& x, Y const& y) {
+  friend bool operator<<(wrapper const& x, Y const& y)
+  {
     return x.get() << y;
   }
   template <typename X>
-  friend bool operator<<(X const& x, wrapper const& y) {
+  friend bool operator<<(X const& x, wrapper const& y)
+  {
     return x << y.get();
   }
-  friend bool operator<<(wrapper const& x, wrapper const& y) {
+  friend bool operator<<(wrapper const& x, wrapper const& y)
+  {
     return x.get() << y.get();
   }
 
   template <typename Y>
-  friend bool operator>>(wrapper const& x, Y const& y) {
+  friend bool operator>>(wrapper const& x, Y const& y)
+  {
     return x.get() >> y;
   }
   template <typename X>
-  friend bool operator>>(X const& x, wrapper const& y) {
+  friend bool operator>>(X const& x, wrapper const& y)
+  {
     return x >> y.get();
   }
-  friend bool operator>>(wrapper const& x, wrapper const& y) {
+  friend bool operator>>(wrapper const& x, wrapper const& y)
+  {
     return x.get() >> y.get();
   }
-
 };
 
 template <typename P, typename H, typename Tag>
