@@ -45,15 +45,10 @@ namespace meta {
   struct value_ {
     using type = decltype(Value);
     static constexpr type value{ Value };
-    constexpr operator type() const { return Value; };
-    static constexpr type get() { return Value; }
-    static constexpr auto getp() {
-      if constexpr (std::is_pointer_v<type>) {
-        return *Value;
-      } else {
-        return Value;
-      }
-    }
+    constexpr operator type() const
+    {
+      return Value;
+    };
   };
 
   template <typename Type, Type Value>

@@ -32,7 +32,8 @@ THE SOFTWARE.
 #define LIBPROPERTY__TAG_NAME(name) _libproperty__##name##_prop_tag
 
 namespace libproperty {
-/* is_property trait.
+/**
+ * `is_property` trait.
  *
  * Any implemented properties must specialize the is_property trait.
  */
@@ -45,6 +46,11 @@ template <typename T>
 using is_property_t = typename is_property<T>::type;
 
 namespace impl {
+
+  /**
+   * The bare metadata required to map the member's `this` pointer to the
+   * host's `this` pointer.
+   */
   template <typename MemberPtr, typename Host>
   struct bare_metadata {
     using host_type = Host;
@@ -53,8 +59,13 @@ namespace impl {
     static constexpr auto member_ptr = member_ptr_t::value;
   };
 
+  template <typename MemberPtr, typename Host>
+  using bare_metadata_t
+      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>>;
+
+
   template <typename MemberPtr, typename Getter, typename Setter, typename Host>
-  struct metadata : bare_metadata<MemberPtr, Host> {
+  struct rw_property_metadata : bare_metadata<MemberPtr, Host> {
 
     using getter_t = Getter;
     static constexpr auto getter = Getter::value;
@@ -63,16 +74,11 @@ namespace impl {
     static constexpr auto setter = Setter::value;
   };
 
-  template <typename MemberPtr, typename Host>
-  using bare_metadata_t
-      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>>;
-
   template <typename MemberPtr, typename Getter, typename Setter, typename Host>
-  using metadata_t = metadata<std::decay_t<MemberPtr>,
+  using metadata_t = rw_property_metadata<std::decay_t<MemberPtr>,
       std::decay_t<Getter>,
       std::decay_t<Setter>,
       std::decay_t<Host>>;
-
 
   struct backdoor {
     template <typename Property>
@@ -107,8 +113,7 @@ namespace impl {
     static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
 
     auto const tag = tag_of(property);
-    auto const member_ptr =
-      Host::_libproperty__get_metadata(tag).member_ptr;
+    auto const member_ptr = Host::_libproperty__get_metadata(tag).member_ptr;
     return offset_of<Host>(member_ptr);
   }
 
