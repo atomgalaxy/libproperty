@@ -10,6 +10,10 @@ Usage:
 
 ### Quick example: ###
 
+```
+ 
+```
+
 ```c++
 #include "libproperty/property.hpp"
 
@@ -56,10 +60,11 @@ be the same as the `type` you supply to the creation macro.
 ### Macros:
 
 ```c++
-LIBPROPERTY_PROPERTY(type, name, getter_name, setter_name, host_type);
-LIBPROPERTY_PROPERTY2(type, name, getter_addr, setter_addr, host_type);
-LIBPROPERTY_EMPTY_PROPERTY(type, name, getter_name, setter_name, host_type);
-LIBPROPERTY_EMPTY_PROPERTY2(type, name, getter_addr, setter_addr, host_type);
+LIBPROPERTY_WRAPPED((type), name, host_type); // recommended
+LIBPROPERTY_PROPERTY((type), name, getter_name, setter_name, host_type);
+LIBPROPERTY_PROPERTY2((type), name, getter_addr, setter_addr, host_type);
+LIBPROPERTY_EMPTY_PROPERTY((type), name, getter_name, setter_name, host_type);
+LIBPROPERTY_EMPTY_PROPERTY2((type), name, getter_addr, setter_addr, host_type);
 ```
 Defines a property with name `name` inside `host_type` that holds a `type`. The
 value of the property is accessible using `name.value` from within the class.

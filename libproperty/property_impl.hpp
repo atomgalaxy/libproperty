@@ -51,7 +51,7 @@ namespace impl {
    * The bare metadata required to map the member's `this` pointer to the
    * host's `this` pointer.
    */
-  template <typename MemberPtr, typename Host>
+  template <typename MemberPtr, typename Host, typename MemberOffset>
   struct bare_metadata {
     using host_type = Host;
 
@@ -59,13 +59,14 @@ namespace impl {
     static constexpr auto member_ptr = member_ptr_t::value;
   };
 
-  template <typename MemberPtr, typename Host>
+  template <typename MemberPtr, typename Host, typename MemberOffset>
   using bare_metadata_t
-      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>>;
+      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>, MemberOffset>;
 
 
-  template <typename MemberPtr, typename Getter, typename Setter, typename Host>
-  struct rw_property_metadata : bare_metadata<MemberPtr, Host> {
+  template <typename MemberPtr, typename Getter, typename Setter, typename
+    Host, typename MemberOffset>
+  struct rw_property_metadata : bare_metadata<MemberPtr, Host, MemberOffset> {
 
     using getter_t = Getter;
     static constexpr auto getter = Getter::value;
@@ -74,11 +75,13 @@ namespace impl {
     static constexpr auto setter = Setter::value;
   };
 
-  template <typename MemberPtr, typename Getter, typename Setter, typename Host>
-  using metadata_t = rw_property_metadata<std::decay_t<MemberPtr>,
+  template <typename MemberPtr, typename Getter, typename Setter, typename
+    Host, typename MemberOffset>
+  using rw_property_metadata_t = rw_property_metadata<std::decay_t<MemberPtr>,
       std::decay_t<Getter>,
       std::decay_t<Setter>,
-      std::decay_t<Host>>;
+      std::decay_t<Host>,
+      std::decay<MemberOffset>>;
 
   struct backdoor {
     template <typename Property>

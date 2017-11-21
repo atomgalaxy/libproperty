@@ -41,10 +41,11 @@ THE SOFTWARE.
   {                                                                            \
     namespace pi = ::libproperty::impl;                                        \
     namespace pm = ::libproperty::meta;                                        \
-    return pi::rw_property_metadata<pm::value_<&host::name>,                   \
+    return pi::rw_property_metadata_t<pm::value_<&host::name>,                 \
         pm::value_<getter>,                                                    \
         pm::value_<setter>,                                                    \
-        host>{};                                                               \
+        host,                                                                  \
+        pm::value_<offsetof(host, name)>>{};                                   \
   }                                                                            \
   static_assert(true)
 

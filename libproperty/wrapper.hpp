@@ -11,7 +11,9 @@
   {                                                                            \
     namespace pi = ::libproperty::impl;                                        \
     namespace pm = ::libproperty::meta;                                        \
-    return pi::bare_metadata_t<pm::value_<&host::name>, host>{};               \
+    return pi::bare_metadata_t<pm::value_<&host::name>,                        \
+        host,                                                                  \
+        pm::value_<offsetof(host, name)>>{};                                   \
   }                                                                            \
   static_assert(true)
 
