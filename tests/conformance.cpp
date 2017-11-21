@@ -57,22 +57,11 @@ struct my_class {
   LIBPROPERTY_EMPTY_PROPERTY(as_int, my_getter, my_int_setter, my_class);
 };
 
-struct offset_of_test {
-  int i;
-  size_t j;
-};
 
 auto y = [](auto x) { std::cout << x << std::endl; };
 
 int main()
 {
-  {
-    using namespace libproperty::impl;
-    assert(offset_of<offset_of_test>(&offset_of_test::j)
-        == offsetof(offset_of_test, j));
-    assert(offset_of<offset_of_test>(&offset_of_test::i)
-        == offsetof(offset_of_test, i));
-  }
   {
     property_test<0> x;
     property_test<0> y;
@@ -80,9 +69,9 @@ int main()
     y = x;
     std::cout << "sizeof property_test: " << sizeof(x) << " " << x.prop1 << " "
               << y.prop2 << " prop1 offset:"
-              << libproperty::impl::offset_of_property<decltype(x)>(x.prop1)
+              << libproperty::impl::offset_of<decltype(x)>(x.prop1)
               << " prop2 offset: "
-              << libproperty::impl::offset_of_property<decltype(x)>(x.prop2)
+              << libproperty::impl::offset_of<decltype(x)>(x.prop2)
               << '\n';
   }
   {

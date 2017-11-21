@@ -51,37 +51,24 @@ namespace impl {
    * The bare metadata required to map the member's `this` pointer to the
    * host's `this` pointer.
    */
-  template <typename MemberPtr, typename Host, typename MemberOffset>
-  struct bare_metadata {
+  template <size_t MemberOffset, typename Host>
+  struct metadata {
     using host_type = Host;
-
-    using member_ptr_t = MemberPtr;
-    static constexpr auto member_ptr = member_ptr_t::value;
+    static constexpr auto member_offset = MemberOffset;
   };
 
-  template <typename MemberPtr, typename Host, typename MemberOffset>
-  using bare_metadata_t
-      = bare_metadata<std::decay_t<MemberPtr>, std::decay_t<Host>, MemberOffset>;
+  template <size_t MemberOffset, typename Host>
+  using metadata_t = metadata<MemberOffset, std::decay_t<Host>>;
 
-
-  template <typename MemberPtr, typename Getter, typename Setter, typename
-    Host, typename MemberOffset>
-  struct rw_property_metadata : bare_metadata<MemberPtr, Host, MemberOffset> {
-
-    using getter_t = Getter;
-    static constexpr auto getter = Getter::value;
-
-    using setter_type = Setter;
-    static constexpr auto setter = Setter::value;
+  template <size_t MemberOffset, typename Host, auto Getter, auto Setter>
+  struct rw_property_metadata : metadata<MemberOffset, Host> {
+    static constexpr auto getter = Getter;
+    static constexpr auto setter = Setter;
   };
 
-  template <typename MemberPtr, typename Getter, typename Setter, typename
-    Host, typename MemberOffset>
-  using rw_property_metadata_t = rw_property_metadata<std::decay_t<MemberPtr>,
-      std::decay_t<Getter>,
-      std::decay_t<Setter>,
-      std::decay_t<Host>,
-      std::decay<MemberOffset>>;
+  template <size_t MemberOffset, typename Host, auto Getter, auto Setter>
+  using rw_property_metadata_t
+      = rw_property_metadata<MemberOffset, std::decay_t<Host>, Getter, Setter>;
 
   struct backdoor {
     template <typename Property>
@@ -95,29 +82,11 @@ namespace impl {
     return backdoor::tag_of<Property>;
   }
 
-  /**
-   * Alternative implementation of offsetof, but with a member pointer instead
-   * of a name.
-   *
-   * At this point, the host type is fully defined, so we can do this magic.
-   *
-   * Contrary to popular belief, this is *not* undefined behaviour. It is the
-   * initial definition of the offsetof() macro.
-   */
-  template <typename Host, typename PointerToMemberType>
-  auto constexpr offset_of(PointerToMemberType member_ptr)
-  {
-    return reinterpret_cast<std::size_t>(&((Host*)0->*member_ptr));
-  }
-
   template <typename Host, typename Property>
-  auto constexpr offset_of_property(Property const& property)
+  auto constexpr offset_of(Property const& property)
   {
     static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
-
-    auto const tag = tag_of(property);
-    auto const member_ptr = Host::_libproperty__get_metadata(tag).member_ptr;
-    return offset_of<Host>(member_ptr);
+    return Host::_libproperty__get_metadata(tag_of(property)).member_offset;
   }
 
   /**
@@ -141,7 +110,7 @@ namespace impl {
     // load and one add.
     auto const property_addr = ::std::addressof(property);
     auto const raw_property_ptr = reinterpret_cast<char_ptr_t>(property_addr);
-    auto const offset = offset_of_property<Host>(property);
+    auto const offset = offset_of<Host>(property);
     auto const raw_host_ptr = raw_property_ptr - offset;
     auto const host_ptr = reinterpret_cast<host_ptr_t>(raw_host_ptr);
     return pm::forward_like<Property>(*host_ptr);

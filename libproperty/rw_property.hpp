@@ -40,12 +40,8 @@ THE SOFTWARE.
       decltype(::libproperty::impl::tag_of(name)))                             \
   {                                                                            \
     namespace pi = ::libproperty::impl;                                        \
-    namespace pm = ::libproperty::meta;                                        \
-    return pi::rw_property_metadata_t<pm::value_<&host::name>,                 \
-        pm::value_<getter>,                                                    \
-        pm::value_<setter>,                                                    \
-        host,                                                                  \
-        pm::value_<offsetof(host, name)>>{};                                   \
+    return pi::                                                                \
+        rw_property_metadata_t<offsetof(host, name), host, getter, setter>{};  \
   }                                                                            \
   static_assert(true)
 
