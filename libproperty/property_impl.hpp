@@ -29,79 +29,86 @@ THE SOFTWARE.
 #include <cstddef> // for std::size_t
 
 #define LIBPROPERTY__PARENTHESIZED_TYPE(...) __VA_ARGS__
+
 #define LIBPROPERTY__TAG_NAME(name) _libproperty__##name##_prop_tag
+
+#define LIBPROPERTY__DECLARE_TAG(name, host)                                   \
+  struct LIBPROPERTY__TAG_NAME(name) {                                         \
+    using host_type = host;                                                    \
+  };                                                                           \
+  static_assert(true, "need semicolon")
+
+#define LIBPROPERTY__DEFINE_GET_METADATA(name, host)                           \
+  auto static constexpr _libproperty__get_metadata(                            \
+      decltype(::libproperty::impl::tag_of(name)))                             \
 
 namespace libproperty {
 /**
- * `is_property` trait.
+ * `property_traits` trait.
  *
- * Any implemented properties must specialize the is_property trait.
+ * Any implemented properties must specialize the property_traits trait.
  */
 template <typename T>
-struct is_property : std::false_type {
+struct property_traits {
+  static constexpr std::false_type is_property = {};
+  using tag = void;
 };
-template <typename T>
-inline constexpr is_property<T> is_property_v{};
-template <typename T>
-using is_property_t = typename is_property<T>::type;
+template <typename Property>
+using property_traits_t = property_traits<std::decay_t<Property>>;
+
+/**
+ * The bare metadata required to map the member's `this` pointer to the
+ * host's `this` pointer.
+ */
+template <size_t MemberOffset>
+struct metadata {
+  static constexpr auto member_offset = MemberOffset;
+};
 
 namespace impl {
 
-  /**
-   * The bare metadata required to map the member's `this` pointer to the
-   * host's `this` pointer.
-   */
-  template <size_t MemberOffset, typename Host>
-  struct metadata {
-    using host_type = Host;
-    static constexpr auto member_offset = MemberOffset;
-  };
 
-  template <size_t MemberOffset, typename Host>
-  using metadata_t = metadata<MemberOffset, std::decay_t<Host>>;
+  template <typename Property>
+  using tag_type = typename ::libproperty::property_traits_t<Property>::tag;
 
-  template <size_t MemberOffset, typename Host, auto Getter, auto Setter>
-  struct rw_property_metadata : metadata<MemberOffset, Host> {
-    static constexpr auto getter = Getter;
-    static constexpr auto setter = Setter;
-  };
-
-  template <size_t MemberOffset, typename Host, auto Getter, auto Setter>
-  using rw_property_metadata_t
-      = rw_property_metadata<MemberOffset, std::decay_t<Host>, Getter, Setter>;
-
-  struct backdoor {
-    template <typename Property>
-    auto static constexpr tag_of = typename std::decay_t<Property>::tag{};
-  };
+  template <typename Property>
+  using host_type = typename tag_type<Property>::host_type;
 
   template <typename Property>
   auto constexpr tag_of(Property&&)
   {
-    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
-    return backdoor::tag_of<Property>;
+    static_assert(::libproperty::property_traits_t<Property>::is_property);
+    return tag_type<Property>{};
   }
 
-  template <typename Host, typename Property>
-  auto constexpr offset_of(Property const& property)
+  template <typename Property>
+  constexpr auto meta(Property&& property)
   {
-    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
-    return Host::_libproperty__get_metadata(tag_of(property)).member_offset;
+    using host = host_type<Property>;
+    auto tag = tag_of(property);
+    return host::_libproperty__get_metadata(tag);
+  }
+
+  template <typename Property>
+  auto constexpr offset_of(Property&& property)
+  {
+    return ::libproperty::impl::meta(property).member_offset;
   }
 
   /**
    * @param property should be the '*this' pointer of an rw_property or
    * compatible class.
    */
-  template <typename Host, typename Property>
+  template <typename Property>
   constexpr auto get_host(Property&& property) noexcept -> decltype(auto)
   {
     namespace pm = ::libproperty::meta;
 
-    static_assert(::libproperty::is_property_v<std::decay_t<Property>>);
+    static_assert(::libproperty::property_traits_t<Property>::is_property);
     // transfer cv qualifiers from property to host
+    using host = host_type<Property>;
     using host_ptr_t = std::add_pointer_t<
-        pm::like_t<std::remove_reference_t<Property>, Host>>;
+        pm::like_t<std::remove_reference_t<Property>, host>>;
     using char_ptr_t = std::add_pointer_t<
         pm::like_t<std::remove_reference_t<Property>, char>>;
 
@@ -110,7 +117,7 @@ namespace impl {
     // load and one add.
     auto const property_addr = ::std::addressof(property);
     auto const raw_property_ptr = reinterpret_cast<char_ptr_t>(property_addr);
-    auto const offset = offset_of<Host>(property);
+    auto const offset = offset_of(property);
     auto const raw_host_ptr = raw_property_ptr - offset;
     auto const host_ptr = reinterpret_cast<host_ptr_t>(raw_host_ptr);
     return pm::forward_like<Property>(*host_ptr);

@@ -28,34 +28,29 @@ THE SOFTWARE.
 #include "property_impl.hpp"
 
 #define LIBPROPERTY_WRAP(type, name, host)                                     \
-  struct LIBPROPERTY__TAG_NAME(name);                                          \
+  LIBPROPERTY__DECLARE_TAG(name, host);                                        \
   ::libproperty::wrapper<LIBPROPERTY__PARENTHESIZED_TYPE type,                 \
-      host,                                                                    \
       host::LIBPROPERTY__TAG_NAME(name)>                                       \
       name;                                                                    \
-  auto static constexpr _libproperty__get_metadata(                            \
-      decltype(::libproperty::impl::tag_of(name)))                             \
+  LIBPROPERTY__DEFINE_GET_METADATA(name, host)                                 \
   {                                                                            \
-    namespace pi = ::libproperty::impl;                                        \
-    return pi::metadata_t<offsetof(host, name), host>{};                       \
+    return ::libproperty::metadata<offsetof(host, name)>{};                    \
   }                                                                            \
-  static_assert(true)
+  static_assert(true, "require semicolon")
 
 namespace libproperty {
 
-template <typename Property, typename Host, typename Tag>
+template <typename Property, typename Tag>
 class wrapper {
-  // the very first thing to make sure it shares the address with wrapper.
-  Property value;
-
-  friend Host;
-  friend ::libproperty::impl::backdoor;
-
-  using tag = ::libproperty::meta::type_<Tag>; // tags must be cheap and regular
-
-  using host = Host;
+  // private implementation
+  using host = typename Tag::host_type;
   using self = wrapper;
   using value_type = Property;
+
+  // allow `host` to access self::value
+  friend host;
+  // the very first thing to make sure it shares the address with wrapper.
+  Property value;
 
   constexpr wrapper() = default;
   constexpr wrapper(wrapper const&) = default;
@@ -76,45 +71,39 @@ class wrapper {
   {
   }
 
-  // metadata getter, for convenience
-  static constexpr auto metadata()
-  {
-    return host::_libproperty__get_metadata(tag{});
-  }
-
 public:
   /* setter implementation */
   template <typename X>
   decltype(auto) operator=(X&& val) &
   {
     return value.set(
-        ::libproperty::impl::get_host<host>(*this), std::forward<X>(val));
+        ::libproperty::impl::get_host(*this), std::forward<X>(val));
   }
   template <typename X>
   decltype(auto) operator=(X&& val) const &
   {
     return value.set(
-        ::libproperty::impl::get_host<host>(*this), std::forward<X>(val));
+        ::libproperty::impl::get_host(*this), std::forward<X>(val));
   }
   template <typename X>
   decltype(auto) operator=(X&& val) &&
   {
-    return value.set(::libproperty::impl::get_host<host>(std::move(*this)),
-        std::forward<X>(val));
+    return value.set(
+        ::libproperty::impl::get_host(std::move(*this)), std::forward<X>(val));
   }
 
   /* get */
   decltype(auto) get() const &
   {
-    return value.get(::libproperty::impl::get_host<host>(*this));
+    return value.get(::libproperty::impl::get_host(*this));
   }
   decltype(auto) get() &
   {
-    return value.get(::libproperty::impl::get_host<host>(*this));
+    return value.get(::libproperty::impl::get_host(*this));
   }
   decltype(auto) get() &&
   {
-    return value.get(::libproperty::impl::get_host<host>(std::move(*this)));
+    return value.get(::libproperty::impl::get_host(std::move(*this)));
   }
 
   /* implicit conversions to get */
@@ -135,135 +124,47 @@ public:
   template <typename U>
   operator U() const
   {
-    return value.template convert_to<U>(
-        ::libproperty::impl::get_host<host>(*this));
+    return value.template convert_to<U>(::libproperty::impl::get_host(*this));
   }
 
-  // operators
-  template <typename Y>
-  friend bool operator==(wrapper const& x, Y const& y)
-  {
-    return x.get() == y;
-  }
-  template <typename X>
-  friend bool operator==(X const& x, wrapper const& y)
-  {
-    return x == y.get();
-  }
-  friend bool operator==(wrapper const& x, wrapper const& y)
-  {
-    return x.get() == y.get();
-  }
+// operators
+#define LIBPROPERTY__DECLARE_OPERATOR(op)                                      \
+  template <typename Y>                                                        \
+  friend decltype(auto) operator op(wrapper const& x, Y const& y)              \
+  {                                                                            \
+    return x.get() op y;                                                       \
+  }                                                                            \
+  template <typename X>                                                        \
+  friend decltype(auto) operator op(X const& x, wrapper const& y)              \
+  {                                                                            \
+    return x op y.get();                                                       \
+  }                                                                            \
+  friend decltype(auto) operator op(wrapper const& x, wrapper const& y)        \
+  {                                                                            \
+    return x.get() op y.get();                                                 \
+  }                                                                            \
+  static_assert("require semicolon")
 
-  template <typename Y>
-  friend bool operator!=(wrapper const& x, Y const& y)
-  {
-    return x.get() != y;
-  }
-  template <typename X>
-  friend bool operator!=(X const& x, wrapper const& y)
-  {
-    return x != y.get();
-  }
-  friend bool operator!=(wrapper const& x, wrapper const& y)
-  {
-    return x.get() != y.get();
-  }
-
-  template <typename Y>
-  friend bool operator<(wrapper const& x, Y const& y)
-  {
-    return x.get() < y;
-  }
-  template <typename X>
-  friend bool operator<(X const& x, wrapper const& y)
-  {
-    return x < y.get();
-  }
-  friend bool operator<(wrapper const& x, wrapper const& y)
-  {
-    return x.get() < y.get();
-  }
-
-  template <typename Y>
-  friend bool operator>(wrapper const& x, Y const& y)
-  {
-    return x.get() > y;
-  }
-  template <typename X>
-  friend bool operator>(X const& x, wrapper const& y)
-  {
-    return x > y.get();
-  }
-  friend bool operator>(wrapper const& x, wrapper const& y)
-  {
-    return x.get() > y.get();
-  }
-
-  template <typename Y>
-  friend bool operator<=(wrapper const& x, Y const& y)
-  {
-    return x.get() <= y;
-  }
-  template <typename X>
-  friend bool operator<=(X const& x, wrapper const& y)
-  {
-    return x <= y.get();
-  }
-  friend bool operator<=(wrapper const& x, wrapper const& y)
-  {
-    return x.get() <= y.get();
-  }
-
-  template <typename Y>
-  friend bool operator>=(wrapper const& x, Y const& y)
-  {
-    return x.get() >= y;
-  }
-  template <typename X>
-  friend bool operator>=(X const& x, wrapper const& y)
-  {
-    return x >= y.get();
-  }
-  friend bool operator>=(wrapper const& x, wrapper const& y)
-  {
-    return x.get() >= y.get();
-  }
-
-  template <typename Y>
-  friend bool operator<<(wrapper const& x, Y const& y)
-  {
-    return x.get() << y;
-  }
-  template <typename X>
-  friend bool operator<<(X const& x, wrapper const& y)
-  {
-    return x << y.get();
-  }
-  friend bool operator<<(wrapper const& x, wrapper const& y)
-  {
-    return x.get() << y.get();
-  }
-
-  template <typename Y>
-  friend bool operator>>(wrapper const& x, Y const& y)
-  {
-    return x.get() >> y;
-  }
-  template <typename X>
-  friend bool operator>>(X const& x, wrapper const& y)
-  {
-    return x >> y.get();
-  }
-  friend bool operator>>(wrapper const& x, wrapper const& y)
-  {
-    return x.get() >> y.get();
-  }
+  LIBPROPERTY__DECLARE_OPERATOR(==);
+  LIBPROPERTY__DECLARE_OPERATOR(!=);
+  LIBPROPERTY__DECLARE_OPERATOR(<);
+  LIBPROPERTY__DECLARE_OPERATOR(>);
+  LIBPROPERTY__DECLARE_OPERATOR(<=);
+  LIBPROPERTY__DECLARE_OPERATOR(>=);
+  LIBPROPERTY__DECLARE_OPERATOR(>>);
+  LIBPROPERTY__DECLARE_OPERATOR(<<);
+  LIBPROPERTY__DECLARE_OPERATOR(+);
+  LIBPROPERTY__DECLARE_OPERATOR(-);
+  LIBPROPERTY__DECLARE_OPERATOR(*);
+  LIBPROPERTY__DECLARE_OPERATOR(/);
+  LIBPROPERTY__DECLARE_OPERATOR(%);
+#undef LIBPROPERTY__DECLARE_OPERATOR
 };
 
-template <typename P, typename H, typename Tag>
-struct is_property<wrapper<P, H, Tag>> : std::true_type {
-  using tag = ::libproperty::meta::type_<Tag>;
+template <typename P, typename Tag>
+struct property_traits<wrapper<P, Tag>> : std::true_type {
+  static constexpr std::true_type is_property = {};
+  using tag = Tag;
 };
 
 } // libproperty

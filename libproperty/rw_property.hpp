@@ -31,19 +31,16 @@ THE SOFTWARE.
 #include <utility> // for std::forward
 
 #define LIBPROPERTY_PROPERTY2(type, name, getter, setter, host)                \
-  struct LIBPROPERTY__TAG_NAME(name);                                          \
+  LIBPROPERTY__DECLARE_TAG(name, host);                                        \
   ::libproperty::rw_property<LIBPROPERTY__PARENTHESIZED_TYPE type,             \
-      host,                                                                    \
-      ::libproperty::meta::type_<host::LIBPROPERTY__TAG_NAME(name)>>           \
+      host::LIBPROPERTY__TAG_NAME(name)>                                       \
       name;                                                                    \
-  auto static constexpr _libproperty__get_metadata(                            \
-      decltype(::libproperty::impl::tag_of(name)))                             \
+  LIBPROPERTY__DEFINE_GET_METADATA(name, host)                                 \
   {                                                                            \
-    namespace pi = ::libproperty::impl;                                        \
-    return pi::                                                                \
-        rw_property_metadata_t<offsetof(host, name), host, getter, setter>{};  \
+    return ::libproperty::                                                     \
+        rw_property_meta<offsetof(host, name), getter, setter>{};              \
   }                                                                            \
-  static_assert(true)
+  static_assert("require semicolon")
 
 // only call in class scope!
 #define LIBPROPERTY_PROPERTY(type, name, getter, setter, host)                 \
@@ -58,31 +55,21 @@ THE SOFTWARE.
 
 namespace libproperty {
 
-template <typename T, typename Host, typename Tag>
-struct rw_property {
-  using tag = Tag;
-  using host = Host;
+template <auto MemberOffset, auto Getter, auto Setter>
+struct rw_property_meta : libproperty::metadata<MemberOffset> {
+  static constexpr auto getter = Getter;
+  static constexpr auto setter = Setter;
+};
+
+template <typename T, typename Tag>
+class rw_property {
+  using host = typename Tag::host_type;
   using value_type = T;
 
+  // allow `host` to access self::value
   friend host;
 
-  constexpr operator decltype(auto)() const
-  {
-    namespace pi = ::libproperty::impl;
-    auto constexpr getter = metadata().getter;
-    return (pi::get_host<host>(*this).*getter)();
-  }
-
-  template <typename X>
-  decltype(auto) operator=(X&& x) // I don't want to say it 3 times...
-  {
-    namespace pi = ::libproperty::impl;
-    auto constexpr setter = metadata().setter;
-    return (pi::get_host<host>(*this).*setter)(std::forward<X>(x));
-  }
-
-private:   // for the use of host, not for anyone else!
-  T value; // possibly unused.
+  value_type value; // possibly unused.
 
   /// disallow copying for non-friend users of the class - this doesn't have a
   /// value, but if copied, it can get really, really bad (stack corruption).
@@ -104,14 +91,25 @@ private:   // for the use of host, not for anyone else!
   {
   }
 
-  static constexpr auto metadata()
+public:
+  constexpr operator decltype(auto)() const
   {
-    return host::_libproperty__get_metadata(tag{});
+    namespace pi = ::libproperty::impl;
+    return (pi::get_host(*this).*pi::meta(*this).getter)();
+  }
+
+  template <typename X>
+  decltype(auto) operator=(X&& x) // I don't want to say it 3 times...
+  {
+    namespace pi = ::libproperty::impl;
+    return (pi::get_host(*this).*pi::meta(*this).setter)(std::forward<X>(x));
   }
 };
 
-template <typename T, typename H, typename Tag>
-struct is_property<rw_property<T, H, Tag>> : std::true_type {
+template <typename T, typename Tag>
+struct property_traits<rw_property<T, Tag>> {
+  static constexpr std::true_type is_property = {};
+  using tag = Tag;
 };
 
 } // property

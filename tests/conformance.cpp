@@ -69,9 +69,9 @@ int main()
     y = x;
     std::cout << "sizeof property_test: " << sizeof(x) << " " << x.prop1 << " "
               << y.prop2 << " prop1 offset:"
-              << libproperty::impl::offset_of<decltype(x)>(x.prop1)
+              << libproperty::impl::offset_of(x.prop1)
               << " prop2 offset: "
-              << libproperty::impl::offset_of<decltype(x)>(x.prop2)
+              << libproperty::impl::offset_of(x.prop2)
               << '\n';
   }
   {

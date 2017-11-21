@@ -34,7 +34,7 @@ class counted_pair {
     decltype(auto) set(Host&& host, Value&& value) const
     {
       ++written;
-      host.*member_ptr= std::forward<Value>(value);
+      host.*member_ptr = std::forward<Value>(value);
       return std::forward<Host>(host).*member_ptr;
     };
 
@@ -49,20 +49,39 @@ class counted_pair {
     auto convert_to(Host&& host) const -> Wanted
     {
       ++converted;
-      return static_cast<Wanted>(host.*member_ptr); // if a conversion exists, it'll happen.
+      return static_cast<Wanted>(
+          host.*member_ptr); // if a conversion exists, it'll happen.
     }
   };
 
 public:
-  LIBPROPERTY_WRAP((counted<&counted_pair::first_>), first , counted_pair);
+  LIBPROPERTY_WRAP((counted<&counted_pair::first_>), first, counted_pair);
   LIBPROPERTY_WRAP((counted<&counted_pair::second_>), second, counted_pair);
 
-  auto first_written() const { return first.value.written; }
-  auto first_read() const { return first.value.read; }
-  auto first_converted() const { return first.value.converted; }
-  auto second_written() const { return second.value.written; }
-  auto second_read() const { return second.value.read; }
-  auto second_converted() const { return second.value.converted; }
+  auto first_written() const
+  {
+    return first.value.written;
+  }
+  auto first_read() const
+  {
+    return first.value.read;
+  }
+  auto first_converted() const
+  {
+    return first.value.converted;
+  }
+  auto second_written() const
+  {
+    return second.value.written;
+  }
+  auto second_read() const
+  {
+    return second.value.read;
+  }
+  auto second_converted() const
+  {
+    return second.value.converted;
+  }
 };
 
 struct A {
@@ -102,7 +121,7 @@ int main()
   }
   {
     counted_pair<A, std::string> x;
-    A y{1};
+    A y{ 1 };
     x.first = y;
     assert(x.first_written() == 1);
     assert((int)x.first == 1);
