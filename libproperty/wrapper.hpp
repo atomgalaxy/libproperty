@@ -32,10 +32,6 @@ THE SOFTWARE.
   ::libproperty::wrapper<LIBPROPERTY__PARENTHESIZED_TYPE type,                 \
       host::LIBPROPERTY__TAG_NAME(name)>                                       \
       name;                                                                    \
-  LIBPROPERTY__DEFINE_GET_METADATA(name, host)                                 \
-  {                                                                            \
-    return ::libproperty::metadata<offsetof(host, name)>{};                    \
-  }                                                                            \
   static_assert(true, "require semicolon")
 
 namespace libproperty {
@@ -93,29 +89,38 @@ public:
   }
 
   /* get */
-  decltype(auto) get() const &
+  template <typename V = value_type, typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H const&>()))>
+  auto get() const & -> decltype(auto)
   {
     return value.get(::libproperty::impl::get_host(*this));
   }
-  decltype(auto) get() &
+  template <typename V = value_type, typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H&>()))>
+  auto get() & -> decltype(auto)
   {
     return value.get(::libproperty::impl::get_host(*this));
   }
-  decltype(auto) get() &&
+  template <typename V = value_type, typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H&&>()))>
+  auto get() && -> decltype(auto)
   {
     return value.get(::libproperty::impl::get_host(std::move(*this)));
   }
 
   /* implicit conversions to get */
-  operator decltype(auto)() const &
+  template <typename W = wrapper>
+  operator decltype(std::declval<W const&>().get())() const &
   {
     return get();
   }
-  operator decltype(auto)() &
+  template <typename W = wrapper>
+  operator decltype(std::declval<W&>().get())() &
   {
     return get();
   }
-  operator decltype(auto)() &&
+  template <typename W = wrapper>
+  operator decltype(std::declval<W&&>().get())() &&
   {
     return get();
   }
@@ -165,6 +170,7 @@ template <typename P, typename Tag>
 struct property_traits<wrapper<P, Tag>> : std::true_type {
   static constexpr std::true_type is_property = {};
   using tag = Tag;
+  using meta = decltype(tag::meta());
 };
 
 } // libproperty

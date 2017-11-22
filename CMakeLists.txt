@@ -12,8 +12,11 @@ project(libproperty)
 enable_testing()
 
 # enable c++14
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fcolor-diagnostics")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#set(CMAKE_CXX_STANDARD 17)
 
 include_directories("${CMAKE_SOURCE_DIR}")
 
@@ -34,6 +37,9 @@ add_test(NAME move COMMAND move)
 
 add_executable(test-wrapper ./tests/test-wrapper.cpp)
 add_test(NAME test-wrapper COMMAND test-wrapper)
+
+add_executable(talk ./tests/talk.cpp)
+add_test(NAME talk COMMAND talk)
 
 # movable test & negatives
 #assert_build_fails(TEST_NAME negative_test_copyable

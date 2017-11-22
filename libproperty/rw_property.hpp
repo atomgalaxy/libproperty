@@ -35,10 +35,9 @@ THE SOFTWARE.
   ::libproperty::rw_property<LIBPROPERTY__PARENTHESIZED_TYPE type,             \
       host::LIBPROPERTY__TAG_NAME(name)>                                       \
       name;                                                                    \
-  LIBPROPERTY__DEFINE_GET_METADATA(name, host)                                 \
+  auto static constexpr _libproperty__rw_property_props(decltype(name)*)       \
   {                                                                            \
-    return ::libproperty::                                                     \
-        rw_property_meta<offsetof(host, name), getter, setter>{};              \
+    return ::libproperty::rw_property_meta<getter, setter>{};                                 \
   }                                                                            \
   static_assert("require semicolon")
 
@@ -55,8 +54,8 @@ THE SOFTWARE.
 
 namespace libproperty {
 
-template <auto MemberOffset, auto Getter, auto Setter>
-struct rw_property_meta : libproperty::metadata<MemberOffset> {
+template <auto Getter, auto Setter>
+struct rw_property_meta {
   static constexpr auto getter = Getter;
   static constexpr auto setter = Setter;
 };
@@ -108,8 +107,12 @@ public:
 
 template <typename T, typename Tag>
 struct property_traits<rw_property<T, Tag>> {
+  using property = rw_property<T, Tag>;
   static constexpr std::true_type is_property = {};
   using tag = Tag;
+  using host = typename tag::host_type;
+  using meta = decltype(
+      host::_libproperty__rw_property_props(std::declval<property*>()));
 };
 
 } // property

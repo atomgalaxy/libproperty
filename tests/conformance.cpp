@@ -58,8 +58,6 @@ struct my_class {
 };
 
 
-auto y = [](auto x) { std::cout << x << std::endl; };
-
 int main()
 {
   {

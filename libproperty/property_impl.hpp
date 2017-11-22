@@ -35,12 +35,16 @@ THE SOFTWARE.
 #define LIBPROPERTY__DECLARE_TAG(name, host)                                   \
   struct LIBPROPERTY__TAG_NAME(name) {                                         \
     using host_type = host;                                                    \
+    auto static constexpr offset()                                             \
+    {                                                                          \
+      return std::integral_constant<size_t, offsetof(host, name)>{};           \
+    }                                                                          \
+    auto static constexpr meta()                                               \
+    {                                                                          \
+      return ::libproperty::metadata<offset()>{};                              \
+    }                                                                          \
   };                                                                           \
   static_assert(true, "need semicolon")
-
-#define LIBPROPERTY__DEFINE_GET_METADATA(name, host)                           \
-  auto static constexpr _libproperty__get_metadata(                            \
-      decltype(::libproperty::impl::tag_of(name)))                             \
 
 namespace libproperty {
 /**
@@ -67,9 +71,11 @@ struct metadata {
 
 namespace impl {
 
-
   template <typename Property>
   using tag_type = typename ::libproperty::property_traits_t<Property>::tag;
+
+  template <typename Property>
+  using meta_type = typename ::libproperty::property_traits_t<Property>::meta;
 
   template <typename Property>
   using host_type = typename tag_type<Property>::host_type;
@@ -82,17 +88,15 @@ namespace impl {
   }
 
   template <typename Property>
-  constexpr auto meta(Property&& property)
+  constexpr auto meta(Property&&)
   {
-    using host = host_type<Property>;
-    auto tag = tag_of(property);
-    return host::_libproperty__get_metadata(tag);
+    return meta_type<Property>{};
   }
 
   template <typename Property>
   auto constexpr offset_of(Property&& property)
   {
-    return ::libproperty::impl::meta(property).member_offset;
+    return ::libproperty::impl::tag_of(property).offset();
   }
 
   /**
