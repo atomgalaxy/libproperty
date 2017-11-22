@@ -39,10 +39,6 @@ THE SOFTWARE.
     {                                                                          \
       return std::integral_constant<size_t, offsetof(host, name)>{};           \
     }                                                                          \
-    auto static constexpr meta()                                               \
-    {                                                                          \
-      return ::libproperty::metadata<offset()>{};                              \
-    }                                                                          \
   };                                                                           \
   static_assert(true, "need semicolon")
 
@@ -59,15 +55,6 @@ struct property_traits {
 };
 template <typename Property>
 using property_traits_t = property_traits<std::decay_t<Property>>;
-
-/**
- * The bare metadata required to map the member's `this` pointer to the
- * host's `this` pointer.
- */
-template <size_t MemberOffset>
-struct metadata {
-  static constexpr auto member_offset = MemberOffset;
-};
 
 namespace impl {
 
@@ -90,7 +77,7 @@ namespace impl {
   template <typename Property>
   constexpr auto meta(Property&&)
   {
-    return meta_type<Property>{};
+    return ::libproperty::impl::meta_type<Property>{};
   }
 
   template <typename Property>

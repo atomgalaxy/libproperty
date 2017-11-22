@@ -170,7 +170,7 @@ template <typename P, typename Tag>
 struct property_traits<wrapper<P, Tag>> : std::true_type {
   static constexpr std::true_type is_property = {};
   using tag = Tag;
-  using meta = decltype(tag::meta());
+  using meta = void; // wrapper does not use a meta.
 };
 
 } // libproperty
