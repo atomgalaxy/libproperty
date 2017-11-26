@@ -67,6 +67,32 @@ class wrapper {
   {
   }
 
+  /* get */
+  template <typename V = value_type,
+      typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H const&>())),
+      bool nxc = noexcept(std::declval<V>().get(std::declval<H const&>()))>
+  auto get() const & noexcept(nxc) -> decltype(auto)
+  {
+    return value.get(::libproperty::impl::get_host(*this));
+  }
+  template <typename V = value_type,
+      typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H&>())),
+      bool nxc = noexcept(std::declval<V>().get(std::declval<H&>()))>
+      auto get() & noexcept(nxc) -> decltype(auto)
+  {
+    return value.get(::libproperty::impl::get_host(*this));
+  }
+  template <typename V = value_type,
+      typename H = host,
+      typename = decltype(std::declval<V>().get(std::declval<H&&>())),
+      bool nxc = noexcept(std::declval<V>().get(std::declval<H&&>()))>
+      auto get() && noexcept(nxc) -> decltype(auto)
+  {
+    return value.get(::libproperty::impl::get_host(std::move(*this)));
+  }
+
 public:
   /* setter implementation */
   template <typename X>
@@ -88,46 +114,32 @@ public:
         ::libproperty::impl::get_host(std::move(*this)), std::forward<X>(val));
   }
 
-  /* get */
-  template <typename V = value_type, typename H = host,
-      typename = decltype(std::declval<V>().get(std::declval<H const&>()))>
-  auto get() const & -> decltype(auto)
-  {
-    return value.get(::libproperty::impl::get_host(*this));
-  }
-  template <typename V = value_type, typename H = host,
-      typename = decltype(std::declval<V>().get(std::declval<H&>()))>
-  auto get() & -> decltype(auto)
-  {
-    return value.get(::libproperty::impl::get_host(*this));
-  }
-  template <typename V = value_type, typename H = host,
-      typename = decltype(std::declval<V>().get(std::declval<H&&>()))>
-  auto get() && -> decltype(auto)
-  {
-    return value.get(::libproperty::impl::get_host(std::move(*this)));
-  }
-
   /* implicit conversions to get */
-  template <typename W = wrapper>
-  operator decltype(std::declval<W const&>().get())() const &
+  template <typename W = wrapper,
+      bool nxc = noexcept(std::declval<W const&>().get())>
+  operator decltype(std::declval<W const&>().get())() const & noexcept(nxc)
   {
     return get();
   }
-  template <typename W = wrapper>
-  operator decltype(std::declval<W&>().get())() &
+  template <typename W = wrapper, bool nxc = noexcept(std::declval<W&>().get())>
+      operator decltype(std::declval<W&>().get())() & noexcept(nxc)
   {
     return get();
   }
-  template <typename W = wrapper>
+  template <typename W = wrapper,
+      bool nxc = noexcept(std::declval<W&&>().get())>
   operator decltype(std::declval<W&&>().get())() &&
   {
     return get();
   }
 
   /* the return-sensitive conversions to get */
-  template <typename U>
-  operator U() const
+  template <typename U,
+      typename V = value_type,
+      typename H = host,
+      bool nxc = noexcept(
+          std::declval<V>().template convert_to<U>(std::declval<H const&>()))>
+  operator U() const noexcept(nxc)
   {
     return value.template convert_to<U>(::libproperty::impl::get_host(*this));
   }

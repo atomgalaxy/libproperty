@@ -27,7 +27,6 @@ THE SOFTWARE.
 
 #include "meta.hpp"
 #include <cstddef> // for std::size_t
-#include <utility>
 #include <new>
 
 #define LIBPROPERTY__PARENTHESIZED_TYPE(...) __VA_ARGS__

@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 #include <type_traits>
 #include <utility> // for std::forward
+#include <functional>
 
 #define LIBPROPERTY_PROPERTY2(type, name, getter, setter, host)                \
   LIBPROPERTY__DECLARE_TAG(name, host);                                        \
