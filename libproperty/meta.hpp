@@ -33,27 +33,6 @@ The original idea for this: Louis Dionne, the boost::hana library.
 namespace libproperty {
 namespace meta {
 
-  template <typename T>
-  struct type_ {
-    using type = T;
-  };
-
-  template <typename T>
-  type_<T> type_c;
-
-  template <auto Value>
-  struct value_ {
-    using type = decltype(Value);
-    static constexpr type value{ Value };
-    constexpr operator type() const
-    {
-      return Value;
-    };
-  };
-
-  template <typename Type, Type Value>
-  value_<Value> value_c;
-
   template <typename From, typename To>
   class like {
     template <bool Condition, template <typename> class Function, typename T>
