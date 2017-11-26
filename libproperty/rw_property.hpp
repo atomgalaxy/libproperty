@@ -37,7 +37,7 @@ THE SOFTWARE.
       name;                                                                    \
   auto static constexpr _libproperty__rw_property_props(decltype(name)*)       \
   {                                                                            \
-    return ::libproperty::rw_property_meta<getter, setter>{};                                 \
+    return ::libproperty::rw_property_meta<getter, setter>{};                  \
   }                                                                            \
   static_assert("require semicolon")
 
@@ -94,14 +94,15 @@ public:
   constexpr operator decltype(auto)() const
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host(*this).*pi::meta(*this).getter)();
+    return std::invoke(pi::meta(*this).getter, pi::get_host(*this));
   }
 
   template <typename X>
   decltype(auto) operator=(X&& x) // I don't want to say it 3 times...
   {
     namespace pi = ::libproperty::impl;
-    return (pi::get_host(*this).*pi::meta(*this).setter)(std::forward<X>(x));
+    return std::invoke(
+        pi::meta(*this).setter, pi::get_host(*this), std::forward<X>(x));
   }
 };
 
